@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario PaaS</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+        }
+        .container { max-width: 1100px; margin: 35px auto; padding: 0 20px; }
+        h1 { margin-bottom: 5px; }
+        .sub { color: #666; margin-top: 0; }
+        .cards { display: flex; gap: 15px; flex-wrap: wrap; margin: 25px 0; }
+        .card {
+            background: white; padding: 20px; border-radius: 12px;
+            box-shadow: 0 2px 8px #0001; min-width: 210px; flex: 1;
+        }
+        .card strong { display: block; font-size: 26px; margin-top: 7px; }
+        .panel {
+            background: white; padding: 20px; border-radius: 12px;
+            box-shadow: 0 2px 8px #0001; margin-bottom: 20px;
+        }
+        form.grid {
+            display: grid; grid-template-columns: repeat(4, 1fr) auto;
+            gap: 10px; align-items: end;
+        }
+        label { font-size: 13px; font-weight: bold; }
+        input {
+            width: 100%; padding: 10px; border: 1px solid #ccc;
+            border-radius: 7px; margin-top: 5px;
+        }
+        button {
+            border: 0; border-radius: 7px; padding: 10px 14px;
+            cursor: pointer; font-weight: bold;
+        }
+        .primary { background: #2563eb; color: white; }
+        .danger { background: #dc2626; color: white; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #f8fafc; }
+        .actions { display: flex; gap: 6px; }
+        .flash { padding: 12px; background: #e0f2fe; border-radius: 8px; margin-bottom: 15px; }
+        @media (max-width: 800px) {
+            form.grid { grid-template-columns: 1fr 1fr; }
+            table { font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>📦 Sistema de Inventario</h1>
+    <p class="sub">Práctica de despliegue PaaS con Python + Flask</p>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+          <div class="flash">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="cards">
+        <div class="card">Productos registrados<strong>{{ productos|length }}</strong></div>
+        <div class="card">Unidades<strong>{{ total_unidades }}</strong></div>
+        <div class="card">Valor del inventario<strong>Bs {{ "%.2f"|format(valor_inventario) }}</strong></div>
+    </div>
+
+    <div class="panel">
+        <h2>Agregar producto</h2>
+        <form class="grid" method="POST" action="{{ url_for('agregar') }}">
+            <label>Nombre
+                <input name="nombre" placeholder="Ej. Monitor" required>
+            </label>
+            <label>Categoría
+                <input name="categoria" placeholder="Ej. Computación" required>
+            </label>
+            <label>Cantidad
+                <input name="cantidad" type="number" min="0" required>
+            </label>
+            <label>Precio (Bs)
+                <input name="precio" type="number" min="0" step="0.01" required>
+            </label>
+            <button class="primary" type="submit">Agregar</button>
+        </form>
+    </div>
+
+    <div class="panel">
+        <h2>Productos</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th><th>Categoría</th><th>Cantidad</th>
+                    <th>Precio</th><th>Total</th><th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for p in productos %}
+                <tr>
+                    <td>{{ p.nombre }}</td>
+                    <td>{{ p.categoria }}</td>
+                    <td>{{ p.cantidad }}</td>
+                    <td>Bs {{ "%.2f"|format(p.precio) }}</td>
+                    <td>Bs {{ "%.2f"|format(p.cantidad * p.precio) }}</td>
+                    <td class="actions">
+                        <form method="POST" action="{{ url_for('eliminar', producto_id=p.id) }}">
+                            <button class="danger" type="submit">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="6">No hay productos registrados.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
